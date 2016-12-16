@@ -17,7 +17,7 @@ public class SmoothCamera2D : MonoBehaviour
     private float oldDamp;
     private bool reset;
     private int zooming; // 0 = no zoom, 1 = zoom out, 2 = zoom in
-    Camera camera;
+    new Camera camera;
     void Start()
     {
         camera = GetComponent<Camera>();
