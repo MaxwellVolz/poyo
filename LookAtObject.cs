@@ -3,7 +3,7 @@ using System.Collections;
 
 public class LookAtObject : MonoBehaviour {
 
-	public SmoothCamera2D cameraScript;
+    public SmoothCamera2D cameraScript;
     public Transform POI;
     public float time;
     public float dampening;
