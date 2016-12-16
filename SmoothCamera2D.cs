@@ -33,12 +33,21 @@ public class SmoothCamera2D : MonoBehaviour
             Vector3 point = camera.WorldToViewportPoint(target.position);
             Vector3 delta = target.position - camera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, point.z));
             Vector3 destination = transform.position + delta;
-            if (destination.y < boundY)
-                destination.y = boundY;
-            if (destination.x < boundX.x)
-                destination.x = boundX.x;
-            else if (destination.x > boundX.y)
-                destination.x = boundX.y;
+
+            //Adjust bounds to zoom level
+            float offset = 0;
+            if(camera.orthographicSize != cameraZoom)
+            {
+                offset = cameraZoom - camera.orthographicSize;
+                //Debug.Log(boundY - offset);                
+            }
+                if (destination.y < (boundY - offset))
+                    destination.y = (boundY - offset);
+                if (destination.x < boundX.x) //todo: add offset for x coords
+                    destination.x = boundX.x;
+                else if (destination.x > boundX.y)
+                    destination.x = boundX.y;
+            
                        
             transform.position = Vector3.SmoothDamp(transform.position, destination, ref velocity, dampTime);
             if(reset == true && Mathf.Abs(transform.position.x - destination.x) < 1.5)
@@ -48,6 +57,42 @@ public class SmoothCamera2D : MonoBehaviour
                 dampTime = oldDamp;
                 reset = false;
             }
+            switch (zooming)
+            {
+                case 0:
+                    break;
+                case 1:
+                    if (camera.orthographicSize < zoomAmount)
+                    {
+                        camera.orthographicSize += m_zoomSpeed;
+                        if (camera.orthographicSize > zoomAmount)
+                        {
+                            camera.orthographicSize = zoomAmount;
+                            zooming = 0;
+                        }
+                    }
+                    break;
+                case 2:
+                    if (camera.orthographicSize > zoomAmount)
+                    {
+                        camera.orthographicSize -= m_zoomSpeed;
+                        if (camera.orthographicSize < zoomAmount)
+                        {
+                            camera.orthographicSize = zoomAmount;
+                            zooming = 0;
+                        }
+                    }
+                    break;
+                    /* if (camera.orthographicSize < zoomAmount)
+                     {
+                         camera.orthographicSize += (zoomSpeed * 0.01f);
+                         if (camera.orthographicSize > zoomAmount)
+                         {
+                             camera.orthographicSize = zoomAmount;
+                         }
+                     }
+                     */
+            }
             //Debug.Log(destination.x - transform.position.x);
         }
         if (oldTarget && Time.time >= temp)
@@ -56,19 +101,7 @@ public class SmoothCamera2D : MonoBehaviour
             target = oldTarget;
             oldTarget = null;
             reset = true;
-            /*switch (zooming)
-            {
-                case 0:
-                    break;
-                case 1:
-                    zoomAmount = cameraZoom;
-                    zooming = 2;
-                    break;
-                case 2:
-                    zoomAmount = cameraZoom;
-                    zooming = 1;
-                    break;
-            }*/
+            
             float curZoom = camera.orthographicSize;
             if (curZoom < cameraZoom)
             {
@@ -82,47 +115,7 @@ public class SmoothCamera2D : MonoBehaviour
             }
         }     
         
-    }
-    void FixedUpdate()
-    {
-        switch(zooming)
-        {
-            case 0: 
-                break;
-            case 1: 
-                if (camera.orthographicSize < zoomAmount)
-                {
-                    camera.orthographicSize += m_zoomSpeed;
-                    Debug.Log(camera.orthographicSize);
-                    if (camera.orthographicSize > zoomAmount)
-                    {
-                        camera.orthographicSize = zoomAmount;
-                        zooming = 0;
-                    }
-                }
-                break;
-            case 2:
-                if (camera.orthographicSize > zoomAmount)
-                {
-                    camera.orthographicSize -= m_zoomSpeed;
-                    if (camera.orthographicSize < zoomAmount)
-                    {
-                        camera.orthographicSize = zoomAmount;
-                        zooming = 0;
-                    }
-                }
-                break;
-                /* if (camera.orthographicSize < zoomAmount)
-                 {
-                     camera.orthographicSize += (zoomSpeed * 0.01f);
-                     if (camera.orthographicSize > zoomAmount)
-                     {
-                         camera.orthographicSize = zoomAmount;
-                     }
-                 }
-                 */
-        }
-    }
+    }    
 
     public void LookAtPOI(Transform POI, float time, float dampening = .15f, float zoom = 5.0f, float zoomSpeed = 1.0f)
     {
