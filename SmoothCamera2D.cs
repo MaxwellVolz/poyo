@@ -1,0 +1,152 @@
+﻿using UnityEngine;
+using System.Collections;
+
+public class SmoothCamera2D : MonoBehaviour
+{
+
+    public float dampTime = 0.15f;
+    public float boundY = -6.0f;
+    public Vector2 boundX;
+    private Vector3 velocity = Vector3.zero;
+    public Transform target;
+    private float cameraZoom = 5.0f; //default zoom for the camera
+    private float zoomAmount = 5.0f;
+    private float m_zoomSpeed = 1.0f;    
+    private Transform oldTarget;
+    private float temp;
+    private float oldDamp;
+    private bool reset;
+    private int zooming; // 0 = no zoom, 1 = zoom out, 2 = zoom in
+    Camera camera;
+    void Start()
+    {
+        camera = GetComponent<Camera>();
+        cameraZoom = camera.orthographicSize;
+    }
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (target)
+        {
+            Vector3 point = camera.WorldToViewportPoint(target.position);
+            Vector3 delta = target.position - camera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, point.z));
+            Vector3 destination = transform.position + delta;
+            if (destination.y < boundY)
+                destination.y = boundY;
+            if (destination.x < boundX.x)
+                destination.x = boundX.x;
+            else if (destination.x > boundX.y)
+                destination.x = boundX.y;
+                       
+            transform.position = Vector3.SmoothDamp(transform.position, destination, ref velocity, dampTime);
+            if(reset == true && Mathf.Abs(transform.position.x - destination.x) < 1.5)
+            {
+                target.GetComponent<PlayerScript>().isFrozen = false;
+                //Debug.Log("unfrozen");
+                dampTime = oldDamp;
+                reset = false;
+            }
+            //Debug.Log(destination.x - transform.position.x);
+        }
+        if (oldTarget && Time.time >= temp)
+        {
+            dampTime /= 2;
+            target = oldTarget;
+            oldTarget = null;
+            reset = true;
+            /*switch (zooming)
+            {
+                case 0:
+                    break;
+                case 1:
+                    zoomAmount = cameraZoom;
+                    zooming = 2;
+                    break;
+                case 2:
+                    zoomAmount = cameraZoom;
+                    zooming = 1;
+                    break;
+            }*/
+            float curZoom = camera.orthographicSize;
+            if (curZoom < cameraZoom)
+            {
+                zooming = 1;
+                zoomAmount = cameraZoom;
+            }
+            if(curZoom > cameraZoom)
+            {
+                zooming = 2;
+                zoomAmount = cameraZoom;
+            }
+        }     
+        
+    }
+    void FixedUpdate()
+    {
+        switch(zooming)
+        {
+            case 0: 
+                break;
+            case 1: 
+                if (camera.orthographicSize < zoomAmount)
+                {
+                    camera.orthographicSize += m_zoomSpeed;
+                    Debug.Log(camera.orthographicSize);
+                    if (camera.orthographicSize > zoomAmount)
+                    {
+                        camera.orthographicSize = zoomAmount;
+                        zooming = 0;
+                    }
+                }
+                break;
+            case 2:
+                if (camera.orthographicSize > zoomAmount)
+                {
+                    camera.orthographicSize -= m_zoomSpeed;
+                    if (camera.orthographicSize < zoomAmount)
+                    {
+                        camera.orthographicSize = zoomAmount;
+                        zooming = 0;
+                    }
+                }
+                break;
+                /* if (camera.orthographicSize < zoomAmount)
+                 {
+                     camera.orthographicSize += (zoomSpeed * 0.01f);
+                     if (camera.orthographicSize > zoomAmount)
+                     {
+                         camera.orthographicSize = zoomAmount;
+                     }
+                 }
+                 */
+        }
+    }
+
+    public void LookAtPOI(Transform POI, float time, float dampening = .15f, float zoom = 5.0f, float zoomSpeed = 1.0f)
+    {
+        /* Vector3 point = camera.WorldToViewportPoint(target.position);
+         Vector3 delta = POI.position - camera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, point.z));
+         Vector3 destination = transform.position + delta;
+
+         transform.position = Vector3.SmoothDamp(transform.position, destination, ref velocity, dampening);*/
+        target.GetComponent<PlayerScript>().isFrozen = true;
+        if(zoom > 5.0f)
+        {
+            zooming = 1;
+            zoomAmount = zoom;
+        }
+        else if(zoom < 5.0f)
+        {
+            zooming = 2;
+            zoomAmount = zoom;
+        }
+        m_zoomSpeed = zoomSpeed;      
+        oldTarget = target;
+        target = POI;
+        temp = Time.time + time;
+        oldDamp = dampTime;
+        dampTime = dampening;
+    }
+}
