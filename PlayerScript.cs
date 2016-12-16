@@ -25,6 +25,7 @@ public class PlayerScript : MonoBehaviour
     public float bulletMaxSpeed = 20f;
     public float fireRate = 0.5f;
     public float bulletChargeRate = 0.25f;
+    public float bulletLifetime = 1.0f;
     private float m_lastShot;
     private float bulletPower;
 
@@ -161,6 +162,7 @@ public class PlayerScript : MonoBehaviour
             bulletClone.GetComponent<Rigidbody2D>().velocity = direction * force;
             m_lastShot = Time.time;
             bulletPower = bulletBaseSpeed;
+            Destroy(bulletClone, bulletLifetime + (force * 0.1f));
             Debug.Log(force);
         }
 	}
@@ -177,6 +179,13 @@ public class PlayerScript : MonoBehaviour
             }
         }
 
+    }
+
+    public void die()
+    {
+        isFrozen = true;
+
+        //death animation here
     }
 
 	IEnumerator Jump()
