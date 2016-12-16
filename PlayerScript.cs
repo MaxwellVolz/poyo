@@ -132,12 +132,16 @@ public class PlayerScript : MonoBehaviour
 
 	}
 
-	void Flip()
-	{
-		facingRight = !facingRight;
-		Vector3 theScale = transform.localScale;
-		theScale.x *= -1;
-		transform.localScale = theScale;
+    void Flip()
+    {
+        if (!isFrozen)
+        {
+            facingRight = !facingRight;
+            Vector3 theScale = transform.localScale;
+            theScale.x *= -1;
+            transform.localScale = theScale;
+        }
+    
 	}
 
 	void FireShot(float force){
