@@ -27,31 +27,35 @@ public class PlayerScript : MonoBehaviour
     public float bulletLifetime = 1.0f;
     private float m_lastShot;
     private float bulletPower;
+    private Transform bulletPos;
 
 	bool jumpDisabled = false;
 
 	public float airspeedPercent = 0.8f;
 
 	Rigidbody2D rb;
-	public Animator bodyAnimController;
-	public Animator headAnimController;
+	Animator bodyAnimController;
+	Animator headAnimController;
+    Transform head;
     public bool isFrozen = false;
+    private float maxRotationDegrees = 50;
 
 	void Start()
 	{
 		
 		// define rigidbody of character component
 		rb = GetComponent<Rigidbody2D> ();
-
-	}
+        bodyAnimController = transform.Find("characterBody").GetComponent<Animator>();
+        head = transform.Find("characterHead");
+        headAnimController = head.GetComponent<Animator>();
+        bulletPos = head.FindChild("bulletPos").GetComponent<Transform>();
+    }
 
 	void Update()
 	{
 		if (grounded && Input.GetButtonDown("Jump") && !isFrozen && !jumpDisabled) {
-			if (!jumpDisabled) {
-				jumpDisabled = true;
-				Jump ();
-			}
+			jumpDisabled = true;
+			Jump ();
 		}
 
 		if (grounded && Input.GetButtonDown("Fire1") && !isFrozen)
@@ -88,9 +92,23 @@ public class PlayerScript : MonoBehaviour
 			Flip();
 		else if (Input.mousePosition.x < (Screen.width / 2) && facingRight)
 			Flip();
+        
+        float rotation = (Input.mousePosition.y / Screen.height) * 180;
+        
+        rotation -= 90;
+        if (rotation > maxRotationDegrees)
+            rotation = maxRotationDegrees;
+        if(rotation < -maxRotationDegrees)
+            rotation = -maxRotationDegrees;
 
+        if (!facingRight)
+        {
+            rotation *= -1;
+        }
+        
+        head.eulerAngles = new Vector3(0, 0, rotation);
 
-        //if (grounded) {
+            //if (grounded) {
         if (!isFrozen)
         {
             float newVel = rb.velocity.x + (acceleration * move);
@@ -107,10 +125,13 @@ public class PlayerScript : MonoBehaviour
 
 	void Flip()
 	{
-		facingRight = !facingRight;
-		Vector3 theScale = transform.localScale;
-		theScale.x *= -1;
-		transform.localScale = theScale;
+        if (!isFrozen)
+        {
+            facingRight = !facingRight;
+            Vector3 theScale = transform.localScale;
+            theScale.x *= -1;
+            transform.localScale = theScale;
+        }
 	}
 
 	void FireShot(float force){
@@ -123,12 +144,12 @@ public class PlayerScript : MonoBehaviour
             Vector2 direction = target - new Vector2(transform.position.x, transform.position.y);
             direction.Normalize();
 
-            GameObject bulletClone = (GameObject)Instantiate(bullet, new Vector2(transform.position.x, transform.position.y), Quaternion.identity);
+            GameObject bulletClone = (GameObject)Instantiate(bullet, new Vector2(bulletPos.position.x, bulletPos.position.y), Quaternion.identity);
             bulletClone.GetComponent<Rigidbody2D>().velocity = direction * force;
             m_lastShot = Time.time;
             bulletPower = bulletBaseSpeed;
             Destroy(bulletClone, bulletLifetime + (force * 0.1f));
-            Debug.Log(force);
+            //Debug.Log(force);
         }
 	}
 
@@ -156,10 +177,6 @@ public class PlayerScript : MonoBehaviour
 	void Jump()
 	{
 		//Debug.Log ("jumped and waiting to jump again");
-
-
-
-		//Time.fixedDeltaTime = 0.7F;
 
 		bodyAnimController.SetBool ("ground", false);
 
