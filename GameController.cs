@@ -19,12 +19,13 @@ public class GameController : MonoBehaviour {
         ps = player.GetComponent<PlayerScript>();
         camera = GetComponent<Camera>();
         canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
+        Time.timeScale = 1.0f;
     }
 	
 	// Update is called once per frame
 	void Update () {
         if (Input.GetButtonDown("Submit"))
-        {
+        {            
             restartLevel();
         }
         
@@ -48,7 +49,7 @@ public class GameController : MonoBehaviour {
     //Restart current scene
     public void restartLevel()
     {        
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
     }
 
     public void gameOver()
@@ -56,5 +57,6 @@ public class GameController : MonoBehaviour {
         //Debug.Log(canvas.GetComponent<Graphic>().mainTexture);
         gameEnding = true;
         ps.die();
+        //Destroy(player);
     }
 }

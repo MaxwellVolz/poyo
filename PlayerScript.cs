@@ -6,8 +6,7 @@ public class PlayerScript : MonoBehaviour
 	public float maxSpeed = 3.5f;
     public float acceleration = 0.5f;
 	bool facingRight = false;
-	public float jumpForce = 200;
-	public Animator characterAnimator;
+	public float jumpForce = 200;	
 
 	bool grounded = false;
 	public Transform groundCheck;
@@ -30,10 +29,10 @@ public class PlayerScript : MonoBehaviour
     private float bulletPower;
 
 	bool jumpDisabled = false;
-
 	public float airspeedPercent = 0.8f;
 
-	public Rigidbody2D rb;
+	Rigidbody2D rb;
+    Animator characterAnimator;
     public bool isFrozen = false;
 
 	void Start()
@@ -41,18 +40,15 @@ public class PlayerScript : MonoBehaviour
 		
 		// define rigidbody of character component
 		rb = GetComponent<Rigidbody2D> ();
-
-	}
+        characterAnimator = GetComponent<Animator>();
+        //isFrozen = false;
+    }
 
 	void Update()
-	{
-		if (grounded && Input.GetButtonDown("Jump") && !isFrozen) {
-			Debug.Log ("jumpDisabled");
-			Debug.Log (jumpDisabled);
-			if (!jumpDisabled) {
+	{        
+		if (grounded && Input.GetButtonDown("Jump") && !isFrozen && !jumpDisabled) {			
 				jumpDisabled = true;
-				StartCoroutine (Jump ());
-			}
+				Jump();			
 		}
 
 		if (grounded && Input.GetButtonDown("Fire2") && !isFrozen) {
@@ -144,7 +140,8 @@ public class PlayerScript : MonoBehaviour
     
 	}
 
-	void FireShot(float force){
+	void FireShot(float force)
+    {
 
         if (Time.time >= m_lastShot + fireRate)
         {
@@ -190,29 +187,16 @@ public class PlayerScript : MonoBehaviour
         isFrozen = true;
 
         //death animation here
+        
     }
 
-	IEnumerator Jump()
+	void Jump()
 	{
-		//Debug.Log ("jumped and waiting to jump again");
-
-
-
-		//Time.fixedDeltaTime = 0.7F;
-
 		characterAnimator.SetBool ("ground", false);
 
-		rb.AddForce (new Vector2 (0, jumpForce));
-
-		yield return new WaitForSeconds (0.125f);
+		rb.AddForce (new Vector2 (0, jumpForce));		
 
 		jumpDisabled = false;
-
-		//Debug.Log ("ready to jump again");
-
-
-
-
 	}
 
 

@@ -3,7 +3,7 @@ using System.Collections;
 
 public class LookAtObject : MonoBehaviour {
 
-    public SmoothCamera2D cameraScript;
+    SmoothCamera2D cameraScript;
     public Transform POI;
     public float time;
     public float dampening;
@@ -11,9 +11,11 @@ public class LookAtObject : MonoBehaviour {
     private bool triggered = false;
     public float zoomSpeed = 1.0f;
     // Use this for initialization
-    void Start () {
-	
-	}
+    void Start()
+    {
+        cameraScript = Camera.main.GetComponent<SmoothCamera2D>();
+    }            
+            
 	
 	void OnTriggerEnter2D(Collider2D col)
     {

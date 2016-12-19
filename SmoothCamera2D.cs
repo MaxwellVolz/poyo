@@ -8,7 +8,7 @@ public class SmoothCamera2D : MonoBehaviour
     public float boundY = -6.0f;
     public Vector2 boundX;
     private Vector3 velocity = Vector3.zero;
-    public Transform target;
+    private Transform target;
     private float cameraZoom = 5.0f; //default zoom for the camera
     private float zoomAmount = 5.0f;
     private float m_zoomSpeed = 1.0f;    
@@ -22,6 +22,7 @@ public class SmoothCamera2D : MonoBehaviour
     {
         camera = GetComponent<Camera>();
         cameraZoom = camera.orthographicSize;
+        target = GameObject.Find("Character").GetComponent<Transform>();
     }
 
 
