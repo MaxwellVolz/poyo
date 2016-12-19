@@ -11,7 +11,7 @@ public class GameController : MonoBehaviour {
     Canvas canvas;
     new Camera camera;
 
-    private bool gameEnding;
+    private bool gameEnding = false;
     private float fadeAmount = 1.0f;
 	// Use this for initialization
 	void Start () {
@@ -20,6 +20,7 @@ public class GameController : MonoBehaviour {
         camera = GetComponent<Camera>();
         canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
         Time.timeScale = 1.0f;
+        Time.fixedDeltaTime = 0.02F * Time.timeScale;
     }
 	
 	// Update is called once per frame
@@ -39,8 +40,7 @@ public class GameController : MonoBehaviour {
                 fadeAmount -= 0.025f;
             canvas.GetComponent<Graphic>().color = Color.Lerp(Color.white,new Color(1,1,1,0), fadeAmount);
             Time.timeScale = Mathf.Lerp(0.05f, 0.7f, (fadeAmount * .1f));
-            Time.fixedDeltaTime = 0.02F * Time.timeScale;
-            Debug.Log(Time.timeScale);
+            Time.fixedDeltaTime = 0.02F * Time.timeScale;            
         }
     }
         
@@ -53,8 +53,7 @@ public class GameController : MonoBehaviour {
     }
 
     public void gameOver()
-    {        
-        //Debug.Log(canvas.GetComponent<Graphic>().mainTexture);
+    {
         gameEnding = true;
         ps.die();
         //Destroy(player);
