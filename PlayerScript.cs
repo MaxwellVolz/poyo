@@ -6,7 +6,7 @@ public class PlayerScript : MonoBehaviour
 	public float maxSpeed = 3.5f;
     public float acceleration = 0.5f;
 	bool facingRight = false;
-	public float jumpForce = 200;	
+	public float jumpForce = 200;
 
 	bool grounded = false;
 	public Transform groundCheck;
@@ -29,10 +29,12 @@ public class PlayerScript : MonoBehaviour
     private float bulletPower;
 
 	bool jumpDisabled = false;
+
 	public float airspeedPercent = 0.8f;
 
 	Rigidbody2D rb;
-    Animator characterAnimator;
+	public Animator bodyAnimController;
+	public Animator headAnimController;
     public bool isFrozen = false;
 
 	void Start()
@@ -40,22 +42,19 @@ public class PlayerScript : MonoBehaviour
 		
 		// define rigidbody of character component
 		rb = GetComponent<Rigidbody2D> ();
-        characterAnimator = GetComponent<Animator>();
-        //isFrozen = false;
-    }
+
+	}
 
 	void Update()
-	{        
-		if (grounded && Input.GetButtonDown("Jump") && !isFrozen && !jumpDisabled) {			
+	{
+		if (grounded && Input.GetButtonDown("Jump") && !isFrozen && !jumpDisabled) {
+			if (!jumpDisabled) {
 				jumpDisabled = true;
-				Jump();			
+				Jump ();
+			}
 		}
 
-		if (grounded && Input.GetButtonDown("Fire2") && !isFrozen) {
-			characterAnimator.SetTrigger ("peck");
-		}
-
-        if (Input.GetButtonDown("Fire1") && !isFrozen)
+		if (grounded && Input.GetButtonDown("Fire1") && !isFrozen)
         {
             bulletPower = bulletBaseSpeed;
             ChargeShot();
@@ -77,27 +76,12 @@ public class PlayerScript : MonoBehaviour
 	{
         
 		grounded = Physics2D.OverlapCircle (groundCheck.position, groundRadius, whatIsGround);
-		//nearMissCollision = Physics2D.OverlapCircle (nearMissCheck.position, nearMissCheckRadius, whatIsFire);
 		float move = Input.GetAxis("Horizontal");			
 
-		characterAnimator.SetBool ("ground", grounded);
-		characterAnimator.SetFloat ("vSpeed", rb.velocity.y);
-		characterAnimator.SetFloat ("speed", Mathf.Abs (move));
 
-		//characterAnimator.SetBool ("nearMiss", nearMissCollision);
-
-
-		// slow mo when moving vertically fast
-		/*if(rb.velocity.y > 5 || rb.velocity.y < -2){
-			Time.timeScale = 0.6F;
-			Time.fixedDeltaTime = 0.02F * Time.timeScale;
-		}
-		else{
-			Time.timeScale = 1F;
-			//Time.fixedDeltaTime = 1F;
-			Time.fixedDeltaTime = 0.02F * Time.timeScale;
-		}*/
-
+		bodyAnimController.SetBool ("ground", grounded);
+		bodyAnimController.SetFloat ("vSpeed", rb.velocity.y);
+		bodyAnimController.SetFloat ("speed", Mathf.Abs (move));
 
 
 		if (Input.mousePosition.x > (Screen.width / 2) && !facingRight)
@@ -119,45 +103,25 @@ public class PlayerScript : MonoBehaviour
         {
             rb.velocity = new Vector2(0, rb.velocity.y);
         }
-
-
-		/*} else {
-			rb.velocity = new Vector2 (move   * (maxSpeed * airspeedPercent), rb.velocity.y);
-
-		}*/
-
 	}
 
-    void Flip()
-    {
-        if (!isFrozen)
-        {
-            facingRight = !facingRight;
-            Vector3 theScale = transform.localScale;
-            theScale.x *= -1;
-            transform.localScale = theScale;
-        }
-    
+	void Flip()
+	{
+		facingRight = !facingRight;
+		Vector3 theScale = transform.localScale;
+		theScale.x *= -1;
+		transform.localScale = theScale;
 	}
 
-	void FireShot(float force)
-    {
+	void FireShot(float force){
 
         if (Time.time >= m_lastShot + fireRate)
         {
-            characterAnimator.SetTrigger("shoot1");
+			headAnimController.SetBool("chargingShot",false);
             //float newX = transform.position.x;
             Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 direction = target - new Vector2(transform.position.x, transform.position.y);
             direction.Normalize();
-            /*float calculatedBulletSpeed = bulletSpeedX;
-            if (!facingRight) {
-                //bulletSpeedX = -bulletSpeedX;
-                calculatedBulletSpeed = -calculatedBulletSpeed;
-                newX -= 1f;
-            } else {
-                newX += 1f;
-            }*/
 
             GameObject bulletClone = (GameObject)Instantiate(bullet, new Vector2(transform.position.x, transform.position.y), Quaternion.identity);
             bulletClone.GetComponent<Rigidbody2D>().velocity = direction * force;
@@ -172,7 +136,7 @@ public class PlayerScript : MonoBehaviour
     {
         if (Time.time >= m_lastShot + fireRate)
         {
-            characterAnimator.SetTrigger("shoot1");
+			headAnimController.SetBool("chargingShot",true);
             if (bulletPower < bulletMaxSpeed)
             {
                 bulletPower += bulletChargeRate;
@@ -187,16 +151,27 @@ public class PlayerScript : MonoBehaviour
         isFrozen = true;
 
         //death animation here
-        
     }
 
 	void Jump()
 	{
-		characterAnimator.SetBool ("ground", false);
+		//Debug.Log ("jumped and waiting to jump again");
 
-		rb.AddForce (new Vector2 (0, jumpForce));		
+
+
+		//Time.fixedDeltaTime = 0.7F;
+
+		bodyAnimController.SetBool ("ground", false);
+
+		rb.AddForce (new Vector2 (0, jumpForce));
 
 		jumpDisabled = false;
+
+		//Debug.Log ("ready to jump again");
+
+
+
+
 	}
 
 
