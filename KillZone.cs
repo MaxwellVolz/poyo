@@ -3,7 +3,11 @@ using System.Collections;
 
 public class KillZone : MonoBehaviour
 {
-    public GameController gc;
+    GameController gc;
+    void Start()
+    {
+        gc = Camera.main.GetComponent<GameController>();
+    }
     void OnTriggerEnter2D(Collider2D col)
     {
         if (col.name == "Character")

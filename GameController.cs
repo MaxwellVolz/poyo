@@ -8,7 +8,7 @@ public class GameController : MonoBehaviour {
 
     GameObject player;
     PlayerScript ps;
-    public Canvas canvas;
+    Canvas canvas;
     new Camera camera;
 
     private bool gameEnding;
@@ -18,12 +18,14 @@ public class GameController : MonoBehaviour {
         player = GameObject.Find("Character");        
         ps = player.GetComponent<PlayerScript>();
         camera = GetComponent<Camera>();
+        canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
+        Time.timeScale = 1.0f;
     }
 	
 	// Update is called once per frame
 	void Update () {
         if (Input.GetButtonDown("Submit"))
-        {
+        {            
             restartLevel();
         }
         
@@ -35,7 +37,10 @@ public class GameController : MonoBehaviour {
             camera.GetComponent<ColorCorrectionCurves>().saturation = Mathf.Lerp(0,.70f,fadeAmount);
             if(fadeAmount > 0)
                 fadeAmount -= 0.025f;
-            canvas.GetComponent<Graphic>().color = Color.white;
+            canvas.GetComponent<Graphic>().color = Color.Lerp(Color.white,new Color(1,1,1,0), fadeAmount);
+            Time.timeScale = Mathf.Lerp(0.05f, 0.7f, (fadeAmount * .1f));
+            Time.fixedDeltaTime = 0.02F * Time.timeScale;
+            Debug.Log(Time.timeScale);
         }
     }
         
@@ -44,7 +49,7 @@ public class GameController : MonoBehaviour {
     //Restart current scene
     public void restartLevel()
     {        
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
     }
 
     public void gameOver()
@@ -52,5 +57,6 @@ public class GameController : MonoBehaviour {
         //Debug.Log(canvas.GetComponent<Graphic>().mainTexture);
         gameEnding = true;
         ps.die();
+        //Destroy(player);
     }
 }
