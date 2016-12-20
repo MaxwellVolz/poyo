@@ -11,16 +11,19 @@ public class GameController : MonoBehaviour {
     Canvas canvas;
     new Camera camera;
 
-    private bool gameEnding = false;
+	private bool gameEnding = false;
     private float fadeAmount = 1.0f;
-	// Use this for initialization
-	void Start () {
+    private GameObject[] colorObjects;
+    private float colorDistance = 3.5f;
+    // Use this for initialization
+    void Start () {
         player = GameObject.Find("Character");        
         ps = player.GetComponent<PlayerScript>();
         camera = GetComponent<Camera>();
         canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
         Time.timeScale = 1.0f;
-        Time.fixedDeltaTime = 0.02F * Time.timeScale;
+		Time.fixedDeltaTime = 0.02F * Time.timeScale;
+        colorObjects = GameObject.FindGameObjectsWithTag("colorable");
     }
 	
 	// Update is called once per frame
@@ -29,7 +32,7 @@ public class GameController : MonoBehaviour {
         {            
             restartLevel();
         }
-        
+        colorScene();
     }
     void FixedUpdate()
     {
@@ -44,7 +47,19 @@ public class GameController : MonoBehaviour {
         }
     }
         
+    void colorScene()
+    {
+        for(int i = 0;i < colorObjects.Length;i++)
+        {
+            Vector3 charPos = player.transform.position;
+            float distance = Vector3.Distance(charPos, colorObjects[i].transform.position);            
+            if (distance > colorDistance) //Goto next iteration if object outside minimum color distance
+                continue;
 
+            float alpha = (distance / colorDistance);
+            colorObjects[i].GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, new Color(1, 1, 1, 0), alpha);            
+        }
+    }
 
     //Restart current scene
     public void restartLevel()
@@ -53,7 +68,8 @@ public class GameController : MonoBehaviour {
     }
 
     public void gameOver()
-    {
+    {        
+        //Debug.Log(canvas.GetComponent<Graphic>().mainTexture);
         gameEnding = true;
         ps.die();
         //Destroy(player);
