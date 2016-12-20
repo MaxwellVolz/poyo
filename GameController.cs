@@ -79,6 +79,12 @@ public class GameController : MonoBehaviour {
     public void restartLevel()
     {        
         SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
+    }    
+    
+    public void changeLevel(string levelName)
+    {
+        //add victory stuff here, score or whatever
+        SceneManager.LoadSceneAsync(levelName);
     }
 
     public void gameOver()

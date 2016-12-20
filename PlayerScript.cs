@@ -158,11 +158,8 @@ public class PlayerScript : MonoBehaviour
         if (Time.time >= m_lastShot + fireRate)
         {
 			headAnimController.SetBool("chargingShot",true);
-            if (bulletPower < bulletMaxSpeed)
-            {
-                bulletPower += bulletChargeRate;
-                Debug.Log(bulletPower);
-            }
+            if (bulletPower < bulletMaxSpeed)            
+                bulletPower += bulletChargeRate;            
         }
 
     }
