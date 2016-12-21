@@ -17,27 +17,77 @@ public class GameController : MonoBehaviour {
     private List<GameObject> colorObjects = new List<GameObject>();
     private float colorDistance = 4.5f;
     private float colorDistanceOffset = 1.0f;
+    private string lastScene;
+    static Vector3 currentCheckpoint;
     // Use this for initialization
-    void Start () {
-        player = GameObject.Find("Character");        
-        ps = player.GetComponent<PlayerScript>();
-        camera = GetComponent<Camera>();
-        canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
-        Time.timeScale = 1.0f;
-		Time.fixedDeltaTime = 0.02F * Time.timeScale;
-        //Populate color object list, probably a better way to do this
-        GameObject[] temp = GameObject.FindGameObjectsWithTag("colorable");
-        foreach (GameObject obj in temp)        
-            colorObjects.Add(obj);
+    void Start ()
+    {      
+               
+            
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+
+    void SceneChanged(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log("scene loaded: " + scene.name);
+        //If we are in the pre-loading scene, switch to first in build order
+        if (SceneManager.GetActiveScene().name == "level0")
+            SceneManager.LoadScene(1);
+
+        if (scene.name != lastScene)
+        {
+            //loaded a new scene, reset savedata
+            currentCheckpoint = Vector3.zero;
+        }
+
+
+        //clear object references
+        colorObjects.Clear();
+        player = null;
+
+        
+        if (gameEnding)
+        {
+            Time.timeScale = 1.0f;
+            Time.fixedDeltaTime = 0.02F * Time.timeScale;
+            gameEnding = false;
+        }
+
+        GameObject[] temp = GameObject.FindGameObjectsWithTag("colorable");
+        foreach (GameObject obj in temp)
+            colorObjects.Add(obj);
+
+        //Setup references        
+        player = GameObject.Find("Character");
+        if (player)
+        {
+            ps = player.GetComponent<PlayerScript>();
+            camera = Camera.main;
+            canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
+        }
+
+        //checkpoint data found
+        if (currentCheckpoint != Vector3.zero)
+        {
+            player.transform.position = currentCheckpoint;
+            camera.transform.position = new Vector3(currentCheckpoint.x, currentCheckpoint.y, camera.transform.position.z);
+            //Debug.Log("setting player to: " + currentCheckpoint);
+        }
+    }
+    
+    void Awake()
+    {        
+        DontDestroyOnLoad(this);
+        SceneManager.sceneLoaded += SceneChanged;
+    }
+
+    // Update is called once per frame
+    void Update () {
         if (Input.GetButtonDown("Submit"))
         {            
-            restartLevel();
+            restartAtCheckpoint();
         }
-        colorScene();
+        if(colorObjects.Count > 0) colorScene();        
     }
     void FixedUpdate()
     {
@@ -69,22 +119,27 @@ public class GameController : MonoBehaviour {
                 colorObjects[i].GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, new Color(1, 1, 1, 0), 0);
                 colorObjects.RemoveAt(i);
                 //Debug.Log("Removing object: " + i);
-                continue;
-            }
-                      
+            }   
         }        
     }
 
     //Restart current scene
     public void restartLevel()
     {        
-        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
+        changeLevel(SceneManager.GetActiveScene().name);        
+    }
+    
+    public void restartAtCheckpoint()
+    {
+        restartLevel();
+        //Debug.Log("restarting level at: " + currentCheckpoint);        
     }    
     
     public void changeLevel(string levelName)
     {
         //add victory stuff here, score or whatever
-        SceneManager.LoadSceneAsync(levelName);
+        lastScene = SceneManager.GetActiveScene().name;
+        SceneManager.LoadSceneAsync(levelName);        
     }
 
     public void gameOver()
@@ -93,5 +148,11 @@ public class GameController : MonoBehaviour {
         gameEnding = true;
         ps.die();
         //Destroy(player);
+    }
+
+    public void setCheckpoint(Vector3 checkpoint)
+    {
+        currentCheckpoint = checkpoint;        
+        //Debug.Log("checkpoint set: " + saveData.checkpoint.name);
     }
 }

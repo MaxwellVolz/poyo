@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class KillZone : MonoBehaviour
-{
+public class checkpoint : MonoBehaviour {
+
     GameController gc;
+    public Vector3 spawnPoint;
     void Start()
     {
         gc = GameObject.Find("GameController").GetComponent<GameController>();
@@ -12,7 +13,8 @@ public class KillZone : MonoBehaviour
     {
         if (col.name == "Character")
         {
-            gc.gameOver();
-        }            
-    }    
+            if (spawnPoint == Vector3.zero) gc.setCheckpoint(this.gameObject.transform.position);
+            else gc.setCheckpoint(spawnPoint);
+        }
+    }
 }
