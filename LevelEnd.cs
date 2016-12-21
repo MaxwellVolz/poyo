@@ -7,7 +7,7 @@ public class LevelEnd : MonoBehaviour {
     public string nextScene;
     void Start()
     {
-        gc = Camera.main.GetComponent<GameController>();
+        gc = GameObject.Find("GameController").GetComponent<GameController>();
     }
 
     // Update is called once per frame
