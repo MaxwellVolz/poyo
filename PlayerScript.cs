@@ -53,7 +53,7 @@ public class PlayerScript : MonoBehaviour
 
 	void Update()
 	{
-		if (grounded && Input.GetButtonDown("Jump") && !isFrozen && !jumpDisabled) {
+		if (grounded && (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.W)) && !isFrozen && !jumpDisabled) {
 			jumpDisabled = true;
 			Jump ();
 		}
