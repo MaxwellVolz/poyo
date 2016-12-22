@@ -53,7 +53,7 @@ public class PlayerScript : MonoBehaviour
 
 	void Update()
 	{
-		if (grounded && (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.W)) && !isFrozen && !jumpDisabled) {
+		if (grounded && Input.GetButtonDown("Jump") && !isFrozen && !jumpDisabled) {
 			jumpDisabled = true;
 			Jump ();
 		}
@@ -80,7 +80,9 @@ public class PlayerScript : MonoBehaviour
 	{
         
 		grounded = Physics2D.OverlapCircle (groundCheck.position, groundRadius, whatIsGround);
-		float move = Input.GetAxis("Horizontal");			
+		float move = Input.GetAxis("Horizontal");
+        if (isFrozen)
+            move = 0;			
 
 
 		bodyAnimController.SetBool ("ground", grounded);
@@ -106,7 +108,7 @@ public class PlayerScript : MonoBehaviour
             rotation *= -1;
         }
         
-        head.eulerAngles = new Vector3(0, 0, rotation);
+        if(!isFrozen) head.eulerAngles = new Vector3(0, 0, rotation);
 
             //if (grounded) {
         if (!isFrozen)
@@ -167,6 +169,7 @@ public class PlayerScript : MonoBehaviour
     public void die()
     {
         isFrozen = true;
+        rb.constraints = RigidbodyConstraints2D.None;
 
         //death animation here
     }

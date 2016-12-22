@@ -31,19 +31,25 @@ public class GameController : MonoBehaviour {
     {
         Debug.Log("scene loaded: " + scene.name);
         //If we are in the pre-loading scene, switch to first in build order
-        if (SceneManager.GetActiveScene().name == "level0")
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            Debug.Log("initial scene loaded, going to first scene in build order");
             SceneManager.LoadScene(1);
+        }
+            
 
         if (scene.name != lastScene)
         {
             //loaded a new scene, reset savedata
             currentCheckpoint = Vector3.zero;
+            //Debug.Log("restarted scene");
         }
 
 
         //clear object references
         colorObjects.Clear();
         player = null;
+        fadeAmount = 1.0f;
 
         
         if (gameEnding)
@@ -125,8 +131,9 @@ public class GameController : MonoBehaviour {
 
     //Restart current scene
     public void restartLevel()
-    {        
-        changeLevel(SceneManager.GetActiveScene().name);        
+    {
+        //Debug.Log("restarting scene");   
+        changeLevel(SceneManager.GetActiveScene().name);              
     }
     
     public void restartAtCheckpoint()
@@ -139,7 +146,8 @@ public class GameController : MonoBehaviour {
     {
         //add victory stuff here, score or whatever
         lastScene = SceneManager.GetActiveScene().name;
-        SceneManager.LoadSceneAsync(levelName);        
+        Debug.Log("changing level to: " +  levelName);
+        SceneManager.LoadScene(levelName);        
     }
 
     public void gameOver()
