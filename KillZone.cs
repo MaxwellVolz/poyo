@@ -12,7 +12,8 @@ public class KillZone : MonoBehaviour
     {
         if (col.name == "Character")
         {
-            gc.gameOver();
+            if(!gc.gameEnding)
+                gc.gameOver();
         }            
     }    
 }

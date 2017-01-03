@@ -4,6 +4,9 @@ using UnityStandardAssets.ImageEffects;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 public class GameController : MonoBehaviour {
 
@@ -12,13 +15,22 @@ public class GameController : MonoBehaviour {
     Canvas canvas;
     new Camera camera;
 
-	private bool gameEnding = false;
+	public bool gameEnding = false;
     private float fadeAmount = 1.0f;
     private List<GameObject> colorObjects = new List<GameObject>();
     private float colorDistance = 4.5f;
     private float colorDistanceOffset = 1.0f;
     private string lastScene;
+    
+    public bool debugging = true;
+    
     static Vector3 currentCheckpoint;
+    //Save variables
+    public int totalCurrency;
+    public PowerUps powers;
+    public int deaths;
+    public List<int> collectedCurrency = new List<int>();
+    public List<String> levelsCompleted = new List<String>();
     // Use this for initialization
     void Start ()
     {      
@@ -26,6 +38,23 @@ public class GameController : MonoBehaviour {
             
     }
 
+    void OnGUI()
+    {
+        if (debugging)
+        {
+            GUI.Label(new Rect(10, 10, 100, 30), "Money: " + totalCurrency);
+            GUI.Label(new Rect(10, 20, 300, 30), "Powers: " + powers);
+            GUI.Label(new Rect(10, 30, 300, 30), "Completed Lvls: " + levelsCompleted.Count);
+            GUI.Label(new Rect(10, 40, 300, 30), "Deaths: " + deaths);
+            GUI.Label(new Rect(Screen.width - 100, 10, 100, 30), "FPS: " + Mathf.Floor(1.0f / Time.deltaTime));
+
+            if (GUI.Button(new Rect(10, 100, 100, 30), "Reset Save"))
+            {
+                File.Delete(Application.persistentDataPath + "/saveData.dat");
+            }
+        }
+
+    }
 
     void SceneChanged(Scene scene, LoadSceneMode mode)
     {
@@ -80,12 +109,25 @@ public class GameController : MonoBehaviour {
             //Debug.Log("setting player to: " + currentCheckpoint);
         }
     }
-    
+
     void Awake()
-    {        
+    {
         DontDestroyOnLoad(this);
         SceneManager.sceneLoaded += SceneChanged;
+        powers = (PowerUps.Bullet | PowerUps.DoubleJump);
+        Load();
+        
+        //Create save file if none exist
+        if (!File.Exists(Application.persistentDataPath + "/saveData.dat"))
+        {
+            File.Create(Application.persistentDataPath + "/saveData.dat");
+        }
     }
+
+    void OnApplicationQuit()
+    {
+        Save();
+    }    
 
     // Update is called once per frame
     void Update () {
@@ -163,4 +205,57 @@ public class GameController : MonoBehaviour {
         currentCheckpoint = checkpoint;        
         //Debug.Log("checkpoint set: " + saveData.checkpoint.name);
     }
+
+    public void Save()
+    {
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream file = File.Open(Application.persistentDataPath + "/saveData.dat", FileMode.Open);
+
+        PlayerData data = new PlayerData();
+        data.totalCurrency = totalCurrency;
+        data.powers = powers;
+        data.deaths = deaths;
+        data.collectedCurrency = collectedCurrency;
+        data.levelsCompleted = levelsCompleted;
+
+        bf.Serialize(file, data);
+        file.Close();
+    }
+    
+    public void Load()
+    {
+        if(File.Exists(Application.persistentDataPath + "/saveData.dat"))
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Open(Application.persistentDataPath + "/saveData.dat", FileMode.Open);
+            PlayerData data = (PlayerData)bf.Deserialize(file);
+
+            totalCurrency = data.totalCurrency;
+            powers = data.powers;
+            deaths = data.deaths;
+            collectedCurrency = data.collectedCurrency;
+            levelsCompleted = data.levelsCompleted;
+        }
+    }    
+}
+
+[Serializable]
+class PlayerData
+{
+    public int totalCurrency;
+    public PowerUps powers;
+    public int deaths;
+    public List<int> collectedCurrency = new List<int>();
+    public List<String> levelsCompleted = new List<String>();    
+}
+
+[Flags]
+public enum PowerUps
+{
+    Bullet = 1,
+    DoubleJump = 2,
+    GroundPound = 4,
+    Glide = 8,
+    Bomb = 16,
+    WaterBalloon = 32
 }
