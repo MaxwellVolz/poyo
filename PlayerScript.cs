@@ -7,6 +7,7 @@ public class PlayerScript : MonoBehaviour
     public float acceleration = 0.5f;
 	bool facingRight = false;
 	public float jumpForce = 200;
+    private PowerUps powers;
 
 	bool grounded = false;
 	public Transform groundCheck;
@@ -28,8 +29,8 @@ public class PlayerScript : MonoBehaviour
     private float m_lastShot;
     private float bulletPower;
     private Transform bulletPos;
-
-	bool jumpDisabled = false;
+	
+    bool doubleJumped = false;
 
 	public float airspeedPercent = 0.8f;
 
@@ -37,6 +38,7 @@ public class PlayerScript : MonoBehaviour
 	Animator bodyAnimController;
 	Animator headAnimController;
     Transform head;
+    GameController gc;
     public bool isFrozen = false;
     private float maxRotationDegrees = 50;
 
@@ -49,30 +51,45 @@ public class PlayerScript : MonoBehaviour
         head = transform.Find("characterHead");
         headAnimController = head.GetComponent<Animator>();
         bulletPos = head.FindChild("bulletPos").GetComponent<Transform>();
+        gc = GameObject.Find("GameController").GetComponent<GameController>();
+
+        powers = gc.powers;
     }
 
 	void Update()
 	{
-		if (grounded && Input.GetButtonDown("Jump") && !isFrozen && !jumpDisabled) {
-			jumpDisabled = true;
-			Jump ();
+		if (Input.GetButtonDown("Jump") && !isFrozen)
+        {
+            //check if we have unlocked doublejump but havent jumped twice yet 
+            if (!grounded && ((powers & PowerUps.DoubleJump) == PowerUps.DoubleJump) && !doubleJumped)
+            {
+                Jump();
+                doubleJumped = true;
+            }
+            else if (grounded)
+            {
+                Jump();                
+            }			
 		}
 
-		if (grounded && Input.GetButtonDown("Fire1") && !isFrozen)
+        if((powers & PowerUps.Bullet) == PowerUps.Bullet)
         {
-            bulletPower = bulletBaseSpeed;
-            ChargeShot();
-        }
+            if (Input.GetButtonDown("Fire1") && !isFrozen)
+            {
+                bulletPower = bulletBaseSpeed;
+                ChargeShot();
+            }
 
-        if (Input.GetButton("Fire1") && !isFrozen)
-        {
-            ChargeShot();
-        }
+            if (Input.GetButton("Fire1") && !isFrozen)
+            {
+                ChargeShot();
+            }
 
-		if(Input.GetButtonUp("Fire1") && !isFrozen)
-        {
-            FireShot(bulletPower);            
-		}
+            if (Input.GetButtonUp("Fire1") && !isFrozen)
+            {
+                FireShot(bulletPower);
+            }
+        }
 
 	}
 
@@ -80,6 +97,10 @@ public class PlayerScript : MonoBehaviour
 	{
         
 		grounded = Physics2D.OverlapCircle (groundCheck.position, groundRadius, whatIsGround);
+
+        if (grounded)
+            doubleJumped = false;
+
 		float move = Input.GetAxis("Horizontal");
         if (isFrozen)
             move = 0;			
@@ -170,7 +191,7 @@ public class PlayerScript : MonoBehaviour
     {
         isFrozen = true;
         rb.constraints = RigidbodyConstraints2D.None;
-
+        gc.deaths += 1;
         //death animation here
     }
 
@@ -181,15 +202,7 @@ public class PlayerScript : MonoBehaviour
 		bodyAnimController.SetBool ("ground", false);
 
 		rb.AddForce (new Vector2 (0, jumpForce));
-
-		jumpDisabled = false;
-
 		//Debug.Log ("ready to jump again");
-
-
-
-
 	}
-
 
 }

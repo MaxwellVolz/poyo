@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class LevelEnd : MonoBehaviour {
 
@@ -15,6 +16,8 @@ public class LevelEnd : MonoBehaviour {
     {
         if (col.name == "Character")
         {
+            if(!gc.levelsCompleted.Contains(SceneManager.GetActiveScene().name))
+                gc.levelsCompleted.Add(SceneManager.GetActiveScene().name);
             gc.changeLevel(nextScene);
         }
     }
