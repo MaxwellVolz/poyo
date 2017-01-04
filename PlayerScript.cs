@@ -31,6 +31,7 @@ public class PlayerScript : MonoBehaviour
     private Transform bulletPos;
 	
     bool doubleJumped = false;
+    bool gliding = false;
 
 	public float airspeedPercent = 0.8f;
 
@@ -40,6 +41,7 @@ public class PlayerScript : MonoBehaviour
     Transform head;
     GameController gc;
     public bool isFrozen = false;
+    public float glidingGravityScale = 0.5f;
     private float maxRotationDegrees = 50;
 
 	void Start()
@@ -63,6 +65,7 @@ public class PlayerScript : MonoBehaviour
             //check if we have unlocked doublejump but havent jumped twice yet 
             if (!grounded && ((powers & PowerUps.DoubleJump) == PowerUps.DoubleJump) && !doubleJumped)
             {
+                rb.velocity = new Vector2(rb.velocity.x,0);                
                 Jump();
                 doubleJumped = true;
             }
@@ -72,7 +75,17 @@ public class PlayerScript : MonoBehaviour
             }			
 		}
 
-        if((powers & PowerUps.Bullet) == PowerUps.Bullet)
+        if(Input.GetButton("Jump") && !grounded && (powers & PowerUps.Glide) == PowerUps.Glide)
+        {
+            gliding = true;
+        }
+
+        if(Input.GetButtonUp("Jump") && gliding)
+        {
+            gliding = false;
+        }
+
+        if ((powers & PowerUps.Bullet) == PowerUps.Bullet)
         {
             if (Input.GetButtonDown("Fire1") && !isFrozen)
             {
@@ -99,14 +112,23 @@ public class PlayerScript : MonoBehaviour
 		grounded = Physics2D.OverlapCircle (groundCheck.position, groundRadius, whatIsGround);
 
         if (grounded)
+        {
             doubleJumped = false;
+            gliding = false;
+        }              
 
 		float move = Input.GetAxis("Horizontal");
-        if (isFrozen)
-            move = 0;			
+        if (gliding && rb.velocity.y <= 0)
+        {
+            rb.gravityScale = glidingGravityScale;
+            move = 0;
+        }            
+        else
+            rb.gravityScale = 1.0f;
 
 
-		bodyAnimController.SetBool ("ground", grounded);
+
+        bodyAnimController.SetBool ("ground", grounded);
 		bodyAnimController.SetFloat ("vSpeed", rb.velocity.y);
 		bodyAnimController.SetFloat ("speed", Mathf.Abs (move));
 
@@ -137,8 +159,9 @@ public class PlayerScript : MonoBehaviour
             float newVel = rb.velocity.x + (acceleration * move);
             if (Mathf.Abs(newVel) > maxSpeed)
                 newVel = maxSpeed * move;
-
+            if (gliding) newVel = rb.velocity.x;
             rb.velocity = new Vector2(newVel, rb.velocity.y);
+            
         }
         else
         {

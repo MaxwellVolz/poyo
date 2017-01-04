@@ -114,7 +114,9 @@ public class GameController : MonoBehaviour {
     {
         DontDestroyOnLoad(this);
         SceneManager.sceneLoaded += SceneChanged;
-        powers = (PowerUps.Bullet | PowerUps.DoubleJump);
+
+        //give some powerups for testing
+        powers = (PowerUps.Bullet | PowerUps.DoubleJump | PowerUps.Glide);
         Load();
         
         //Create save file if none exist
