@@ -11,8 +11,7 @@ public class Currency : MonoBehaviour {
     void Start () {
         gc = GameObject.Find("GameController").GetComponent<GameController>();
 
-        //Check if this currency object has already been collected, and remove it if true
-        Debug.Log(gc.collectedCurrency);       
+        //Check if this currency object has already been collected, and remove it if true               
         if(gc.collectedCurrency.Contains(UID))
         {
             GameObject.Destroy(gameObject);
